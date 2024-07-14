@@ -1,19 +1,24 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	gocsv "github.com/michaelwp/go-csv"
 )
 
 func main() {
-	filePath := "output.csv"
+	filePath := "output"
 	headers := []string{"No", "Name", "Age", "Occupation"}
 	data := GenerateSampleData(1000000)
 
-	err := gocsv.Generate(filePath, headers, data)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	err := gocsv.Generate(ctx, filePath, headers, data)
 	if err != nil {
 		log.Println("failed to create csv", err)
 		return

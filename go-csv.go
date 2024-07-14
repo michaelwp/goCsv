@@ -1,3 +1,8 @@
+/**************************************
+Author: MichaelWP
+@202407
+**************************************/
+
 package go_csv
 
 import (
@@ -60,7 +65,7 @@ func (gc *GoCsv) GenerateRowBatch() []string {
 
 func (gc *GoCsv) InputData(data [][]string) {
 	defer close(gc.Input)
-	for i, d := range data {
+	for _, d := range data {
 		gc.Input <- d
 	}
 }
@@ -95,12 +100,12 @@ func (gc *GoCsv) Cancel() {
 	gc.Ctx = ctx
 }
 
-func Generate(filePath string, headers []string, data [][]string) error {
-	ctx := context.Background()
+// Generate function to generate the csv file
+func Generate(ctx context.Context, filePath string, headers []string, data [][]string) error {
 	input := make(chan []string)
 	output := make(chan []string)
 
-	file, err := os.Create(filePath)
+	file, err := os.Create(filePath + ".csv")
 	if err != nil {
 		return fmt.Errorf("error creating file:", err)
 	}
