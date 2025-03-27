@@ -1,9 +1,10 @@
 /**************************************
 Author: MichaelWP
 @202407
+v2.0.0
 **************************************/
 
-package go_csv
+package gocsv
 
 import (
 	"context"
@@ -13,23 +14,37 @@ import (
 	"time"
 )
 
-const WindowSize = 5
+type request struct {
+	WindowSize int64
+	FilePath   string
+	Headers    []string
+	Data       [][]string
+}
+
+type newRequest struct {
+	Input, Output chan []string
+	File          *os.File
+	WindowSize    int64
+}
 
 type GoCsv struct {
+	WindowSize   int64
 	Input        chan []string
 	Output       chan []string
 	File         *os.File
-	WindowValues [int64(WindowSize)][]string
-	Position     int
+	WindowValues [][]string
+	Position     int64
 	Ctx          context.Context
 }
 
-func NewGoCsv(ctx context.Context, input, output chan []string, file *os.File) *GoCsv {
+func newGoCsv(ctx context.Context, request *newRequest) *GoCsv {
 	return &GoCsv{
-		Input:  input,
-		Output: output,
-		File:   file,
-		Ctx:    ctx,
+		Input:        request.Input,
+		Output:       request.Output,
+		File:         request.File,
+		WindowSize:   request.WindowSize,
+		WindowValues: make([][]string, request.WindowSize),
+		Ctx:          ctx,
 	}
 }
 
@@ -46,7 +61,7 @@ func (gc *GoCsv) Worker() {
 			}
 
 			gc.WindowValues[gc.Position] = val
-			gc.Position = (gc.Position + 1) % WindowSize
+			gc.Position = (gc.Position + 1) % gc.WindowSize
 			if gc.Position == 0 {
 				gc.Output <- gc.GenerateRowBatch()
 			}
@@ -55,7 +70,7 @@ func (gc *GoCsv) Worker() {
 }
 
 func (gc *GoCsv) GenerateRowBatch() []string {
-	rowBatch := make([]string, WindowSize)
+	rowBatch := make([]string, gc.WindowSize)
 	for i, val := range gc.WindowValues {
 		rowBatch[i] = strings.Join(val, ",")
 	}
@@ -101,25 +116,30 @@ func (gc *GoCsv) Cancel() {
 }
 
 // Generate function to generate the csv file
-func Generate(ctx context.Context, filePath string, headers []string, data [][]string) error {
+func Generate(ctx context.Context, request *request) error {
 	input := make(chan []string)
 	output := make(chan []string)
 
-	file, err := os.Create(filePath + ".csv")
+	file, err := os.Create(request.FilePath + ".csv")
 	if err != nil {
-		return fmt.Errorf("error creating file:", err)
+		return fmt.Errorf("error creating file: %v", err)
 	}
 
 	defer file.Close()
 
-	goCsv := NewGoCsv(ctx, input, output, file)
+	goCsv := newGoCsv(ctx, &newRequest{
+		Input:      input,
+		Output:     output,
+		File:       file,
+		WindowSize: request.WindowSize,
+	})
 
-	if err := goCsv.AddHeader(headers); err != nil {
-		return fmt.Errorf("error add header:", err)
+	if err := goCsv.AddHeader(request.Headers); err != nil {
+		return fmt.Errorf("error add header: %v", err)
 	}
 
 	go goCsv.Worker()
-	go goCsv.InputData(data)
+	go goCsv.InputData(request.Data)
 
 	if err := goCsv.AddData(); err != nil {
 		goCsv.Cancel()

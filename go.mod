@@ -1,3 +1,3 @@
-module github.com/michaelwp/go-csv
+module github.com/michaelwp/goCsv
 
 go 1.22.2
