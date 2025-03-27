@@ -14,7 +14,8 @@ import (
 	"time"
 )
 
-type request struct {
+// Request is data to process
+type Request struct {
 	WindowSize int64
 	FilePath   string
 	Headers    []string
@@ -116,7 +117,7 @@ func (gc *GoCsv) Cancel() {
 }
 
 // Generate function to generate the csv file
-func Generate(ctx context.Context, request *request) error {
+func Generate(ctx context.Context, request *Request) error {
 	input := make(chan []string)
 	output := make(chan []string)
 

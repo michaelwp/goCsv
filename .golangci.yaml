@@ -1,13 +1,16 @@
 linters:
   enable:
-    - golint
+    - errorlint       # Improves error handling
+    - gosec           # Detects security vulnerabilities
+    - gocritic        # Detects performance and style issues
+    - dupl            # Detects duplicate code
+    - cyclop          # Checks cyclomatic complexity
+    - funlen          # Prevents excessively long functions
+    - revive
     - govet
     - staticcheck
     - gocyclo
     - bodyclose
-    - gofmt
-    - goimports
-    - gosimple
     - ineffassign
     - tagalign
     - unconvert
@@ -57,3 +60,4 @@ linters-settings:
       - unreachable
       - unsafeptr
       - unusedresult
+version: 2
