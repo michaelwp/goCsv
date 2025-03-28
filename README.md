@@ -7,7 +7,7 @@ The `goCsv` package provides an easy-to-use interface for generating CSV files w
 To install the package, use `go get`:
 
 ```bash
-go get github.com/michaelwp/goCsv
+go get github.com/michaelwp/goCsv/v2
 ```
 
 ## Usage
@@ -27,7 +27,7 @@ import (
 	"strconv"
 	"time"
 
-	gocsv "github.com/michaelwp/goCsv"
+	gocsv "github.com/michaelwp/goCsv/v2"
 )
 
 func main() {
